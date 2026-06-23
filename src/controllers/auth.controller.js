@@ -35,7 +35,7 @@ export const register = async (req, res) => {
   about:     about    || "",
   offers:    offers   || [],
   needs:     needs    || [],
-  avatar:    avatar   
+  avatar:    avatar   || `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70) + 1}`
 });
 
     res.status(201).json({
@@ -53,6 +53,172 @@ export const register = async (req, res) => {
 };
 
 // ------------------
+//OTP controller
+export const sendOtp = async (req, res) => {
+  try {
+    const { userId, phone } = req.body;
+
+    const user = await User.findById(userId);
+//   //  already existed number only show when user enter verifiedPhone=true
+//   //bcz sometimes usernot verify it and left there after sometime the again add
+//   //using unverified number
+//     const existingPhoneUser = await User.findOne({
+//   phone,
+//   _id: { $ne: userId },
+//   phoneVerified: true,
+// });
+
+// if (existingPhoneUser) {
+//   return res.status(400).json({
+//     success: false,
+//     message:
+//       "This phone number is already linked to another account.",
+//   });
+// }
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Cost protection
+    if (
+      user.otpCode &&
+      user.otpExpires &&
+      user.otpExpires > new Date()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "OTP already sent. Please wait before requesting again.",
+      });
+    }
+
+    const otp = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
+
+    const otpExpires = new Date(
+      Date.now() + 5 * 60 * 1000
+    );
+
+    user.phone = phone;
+    user.otpCode = otp;
+    user.otpExpires = otpExpires;
+
+    await user.save();
+
+    const smsMessage = `SkillSwap Verification
+
+Your OTP is: ${otp}
+
+Valid for 5 minutes.`;
+
+    try {
+      const response = await axios.post(
+        "https://api.veevotech.com/v3/sendsms",
+        {
+          hash: process.env.VEEVO_HASH_KEY,
+          receivernum: phone,
+          textmessage: smsMessage,
+        }
+      );
+
+      const data = response.data;
+
+      if (data.STATUS !== "SUCCESSFUL") {
+        user.otpCode = "";
+        user.otpExpires = null;
+
+        await user.save();
+
+        return res.status(500).json({
+          success: false,
+          message:
+            "Failed to send OTP. Please try again.",
+        });
+      }
+
+      return res.json({
+        success: true,
+        message: "OTP sent successfully",
+      });
+
+    } catch (smsError) {
+      user.otpCode = "";
+      user.otpExpires = null;
+
+      await user.save();
+
+      return res.status(500).json({
+        success: false,
+        message:
+          "Failed to send OTP. Please try again.",
+      });
+    }
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+// -----------------
+// verifyOtp
+export const verifyOtp = async (req, res) => {
+  try {
+    const { userId, otp } = req.body;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    if (!user.otpCode) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP not generated",
+      });
+    }
+
+    if (new Date() > user.otpExpires) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP expired",
+      }); 
+    }
+
+    if (user.otpCode !== otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP",
+      });
+    }
+
+    user.phoneVerified = true;
+    user.otpCode = "";
+    user.otpExpires = null;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "Phone verified successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 // login
 export const login = async (req, res) => {
   try {

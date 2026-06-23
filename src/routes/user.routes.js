@@ -7,6 +7,7 @@ import {
   updateProfile,
   getUserById,
   changePassword, 
+  deleteUser,
   uploadAvatar 
 } from "../controllers/user.controller.js";
 
@@ -23,6 +24,8 @@ router.put("/me", auth, updateProfile);
 router.get("/:id", auth, getUserById);
 router.put("/me",              auth, updateProfile);      // Settings save
 router.put("/change-password", auth, changePassword); 
+router.delete("/:id", auth, deleteUser);   
+
 router.put(
   "/avatar",
   auth,

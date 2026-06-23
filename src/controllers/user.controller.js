@@ -145,4 +145,19 @@ export const uploadAvatar = async (req, res) => {
     });
   }
 };
+// Delete User
+export const deleteUser = async (req, res) => {
+  try {
+    await User.findByIdAndDelete(req.params.id);
+    res.json({ 
+      success: true, 
+      message: "User deleted successfully" 
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: error.message 
+    });
+  }
+};
 

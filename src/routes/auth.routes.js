@@ -23,6 +23,9 @@ router.post(
 // Reset Password
 router.post("/reset-password", resetPassword);
 router.post("/forgot-password", forgotPassword);
+//otp 
+router.post("/send-otp", sendOtp);
+router.post("/verify-otp", verifyOtp);
 
 
 export default router;

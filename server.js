@@ -18,6 +18,8 @@ import aiRoutes from "./src/routes/ai.routes.js";
 import swapRequestRoutes from "./src/routes/swaprequest.routes.js";
 import postRoutes from "./src/routes/post.routes.js";
 import matchRoutes from "./src/routes/matchRoutes.js";
+import adminRoutes from "./src/routes/admin.routes.js";
+
 
 dotenv.config();
 
@@ -110,6 +112,8 @@ app.use("/api/swaprequests", swapRequestRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/match", matchRoutes);
 app.use("/uploads", express.static("uploads"));
+app.use("/api/admin", adminRoutes);
+
 
 //api test route
 app.get("/", (req, res) => {

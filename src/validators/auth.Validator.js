@@ -19,4 +19,16 @@ export const registerValidator = [
     .isLength({ min: 6 })
     .withMessage("Password must be at least 6 characters")
 ];
+//login validation
+export const loginValidator = [
+  body("email")
+    .trim()
+    .isEmail()
+    .withMessage("Valid email required"),
+    //removed normalizeEmail() here too
+
+  body("password")
+    .notEmpty()
+    .withMessage("Password is required")
+];
 

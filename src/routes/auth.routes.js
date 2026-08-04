@@ -3,6 +3,8 @@ import { register, login, resetPassword, sendOtp, verifyOtp,  forgotPassword } f
 import validateRequest from "../middleware/validateRequest.js";
 import {
   registerValidator,
+    loginValidator
+
 } from "../validators/auth.Validator.js";
 
 const router = express.Router();
@@ -17,6 +19,7 @@ router.post(
 // Login
 router.post(
   "/login",
+    loginValidator,
   validateRequest,
   login
 );
